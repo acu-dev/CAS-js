@@ -12,8 +12,28 @@
                 <target>1.5</target>
             </configuration>
         </plugin>
+			<plugin>
+				<artifactId>maven-release-plugin</artifactId>
+				<configuration>
+					<tagBase>https://source.acu.edu/svn/cas-js/tags</tagBase>
+				</configuration>
+			</plugin>
     </plugins>
   </build>
+	<scm>
+		<connection>scm:svn:https://source.acu.edu/svn/cas-js/trunk</connection>
+		<developerConnection>scm:svn:https://source.acu.edu/svn/cas-js/trunk</developerConnection>
+	</scm>
+	<distributionManagement>
+		<repository>
+			<id>acu</id>
+			<url>https://source.acu.edu/mvn/content/repositories/acu</url>
+		</repository>
+		<snapshotRepository>
+			<id>acu-snapshots</id>
+			<url>https://source.acu.edu/mvn/content/repositories/acu-snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
   <dependencies>
   	<dependency>
   		<groupId>javax.servlet</groupId>
