@@ -24,6 +24,7 @@ public class CasServletModule extends ServletModule {
 			.getLogger(CasServletModule.class);
 
 	private String applicationConfigContext;
+	private Map<String,String> filterConfig = new HashMap<String,String>();
 
 	public CasServletModule(String applicationConfigContext) {
 		super();
@@ -45,7 +46,6 @@ public class CasServletModule extends ServletModule {
 	protected void configureServlets() {
 		logger.info("configuring servlets");
 		bind(HashServlet.class).in(Singleton.class);
-		Map<String, String> filterConfig = new HashMap<String, String>();
 		try {
 			Context ctx = new InitialContext();
 			for (String name : new String[] { "serverName",
@@ -80,7 +80,7 @@ public class CasServletModule extends ServletModule {
 	 */
 	public void protect(String urlPattern, String... morePatterns) {
 		for (Class<? extends Filter> c : CAS_FILTERS) {
-			filter(urlPattern, morePatterns).through(c);
+			filter(urlPattern, morePatterns).through(c, filterConfig);
 		}
 	}
 
@@ -93,7 +93,7 @@ public class CasServletModule extends ServletModule {
 	 */
 	public void protectRegex(String regex, String... regexes) {
 		for (Class<? extends Filter> c : CAS_FILTERS) {
-			filterRegex(regex, regexes).through(c);
+			filterRegex(regex, regexes).through(c, filterConfig);
 		}
 	}
 }
