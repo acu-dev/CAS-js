@@ -16,6 +16,7 @@ import org.jasig.cas.client.validation.Cas20ProxyReceivingTicketValidationFilter
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Binder;
 import com.google.inject.Singleton;
 import com.google.inject.servlet.ServletModule;
 
@@ -33,6 +34,11 @@ public class CasServletModule extends ServletModule {
 
 	public CasServletModule() {
 		super();
+	}
+	
+	public CasServletModule(Binder binder) {
+		this();
+		this.configure(binder);
 	}
 
 	private static final List<Class<? extends Filter>> CAS_FILTERS = new ArrayList<Class<? extends Filter>>();
