@@ -20,25 +20,57 @@ import com.google.inject.Binder;
 import com.google.inject.Singleton;
 import com.google.inject.servlet.ServletModule;
 
+/**
+ * used to setup ja-sig CAS with Google guice. Typically, this would be called
+ * from another ServletModule.
+ * <pre>
+ * {@code
+ * CasServletModule module = new CasServletModule(this.binder());
+ * module.protect("/*");
+ * }
+ * </pre>
+ */
 public class CasServletModule extends ServletModule {
 	private static final Logger logger = LoggerFactory
 			.getLogger(CasServletModule.class);
 
 	private String applicationConfigContext;
-	private Map<String,String> filterConfig = new HashMap<String,String>();
+	private Map<String, String> filterConfig = new HashMap<String, String>();
 
+	/**
+	 * @param applicationConfigContext
+	 * @see #CasServletModule(String, Binder)
+	 */
 	public CasServletModule(String applicationConfigContext) {
-		super();
-		this.applicationConfigContext = applicationConfigContext;
+		this(applicationConfigContext, null);
 	}
 
+	/**
+	 * Default constructor
+	 */
 	public CasServletModule() {
 		super();
 	}
-	
+
+	/**
+	 * @see #CasServletModule(String, Binder)
+	 */
 	public CasServletModule(Binder binder) {
+		this(null, binder);
+	}
+
+	/**
+	 * Class constructor.
+	 * 
+	 * @param applicationContext
+	 * @param binder	
+	 */
+	public CasServletModule(String applicationContext, Binder binder) {
 		this();
-		this.configure(binder);
+		this.applicationConfigContext = applicationContext;
+		if (binder != null) {
+			this.configure(binder);
+		}
 	}
 
 	private static final List<Class<? extends Filter>> CAS_FILTERS = new ArrayList<Class<? extends Filter>>();
@@ -62,10 +94,15 @@ public class CasServletModule extends ServletModule {
 				try {
 					filterConfig.put(name, (String) ctx.lookup(ctxName));
 				} catch (NamingException e) {
-					String topCtxName = String.format("cas/%s", name);
-					logger.info(String.format("Failed to find %s. Trying %s",
-							ctxName, topCtxName));
-					filterConfig.put(name, (String) ctx.lookup(topCtxName));
+					if (this.applicationConfigContext == null) {
+						throw e;
+					} else {
+						String topCtxName = String.format("cas/%s", name);
+						logger.info(String.format(
+								"Failed to find %s. Trying %s", ctxName,
+								topCtxName));
+						filterConfig.put(name, (String) ctx.lookup(topCtxName));
+					}
 				}
 			}
 		} catch (NamingException e) {
@@ -90,7 +127,6 @@ public class CasServletModule extends ServletModule {
 		}
 	}
 
-	
 	/**
 	 * protect the urls with regular expressions with CAS.
 	 * 
