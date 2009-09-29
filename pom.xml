@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.acu.wip.cas</groupId>
   <artifactId>cas-js</artifactId>
-  <version>1.1-SNAPSHOT</version>
+  <version>1.1</version>
   <build>
     <plugins>
         <plugin>
@@ -21,8 +21,8 @@
     </plugins>
   </build>
 	<scm>
-		<connection>scm:svn:https://source.acu.edu/svn/cas-js/tags/cas-js-1.0</connection>
-		<developerConnection>scm:svn:https://source.acu.edu/svn/cas-js/tags/cas-js-1.0</developerConnection>
+		<connection>scm:svn:https://source.acu.edu/svn/cas-js/tags/cas-js-1.1</connection>
+		<developerConnection>scm:svn:https://source.acu.edu/svn/cas-js/tags/cas-js-1.1</developerConnection>
 	</scm>
 	<distributionManagement>
 		<repository>
