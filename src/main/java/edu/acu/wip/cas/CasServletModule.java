@@ -11,6 +11,7 @@ import javax.naming.NamingException;
 import javax.servlet.Filter;
 
 import org.jasig.cas.client.authentication.AuthenticationFilter;
+import org.jasig.cas.client.session.SingleSignOutFilter;
 import org.jasig.cas.client.util.HttpServletRequestWrapperFilter;
 import org.jasig.cas.client.validation.Cas20ProxyReceivingTicketValidationFilter;
 import org.slf4j.Logger;
@@ -75,6 +76,7 @@ public class CasServletModule extends ServletModule {
 
 	private static final List<Class<? extends Filter>> CAS_FILTERS = new ArrayList<Class<? extends Filter>>();
 	static {
+        CAS_FILTERS.add(SingleSignOutFilter.class);
 		CAS_FILTERS.add(AuthenticationFilter.class);
 		CAS_FILTERS.add(Cas20ProxyReceivingTicketValidationFilter.class);
 		CAS_FILTERS.add(HttpServletRequestWrapperFilter.class);

@@ -12,17 +12,11 @@
                 <target>1.5</target>
             </configuration>
         </plugin>
-			<plugin>
-				<artifactId>maven-release-plugin</artifactId>
-				<configuration>
-					<tagBase>https://source.acu.edu/svn/cas-js/tags</tagBase>
-				</configuration>
-			</plugin>
     </plugins>
   </build>
 	<scm>
-		<connection>scm:svn:https://source.acu.edu/svn/cas-js/tags/cas-js-1.0</connection>
-		<developerConnection>scm:svn:https://source.acu.edu/svn/cas-js/tags/cas-js-1.0</developerConnection>
+                <developerConnection>scm:git:file://${basedir}</developerConnection>
+                <url>scm:git:file://${basedir}</url>
 	</scm>
 	<distributionManagement>
 		<repository>
@@ -57,30 +51,23 @@
   		<scope>compile</scope>
   	</dependency>
   	<dependency>
-  		<groupId>com.google.code.guice</groupId>
+  		<groupId>com.google.inject</groupId>
   		<artifactId>guice</artifactId>
   		<version>2.0</version>
   		<type>jar</type>
   		<scope>compile</scope>
   	</dependency>
   	<dependency>
-  		<groupId>com.google.code.guice</groupId>
+  		<groupId>com.google.inject.extensions</groupId>
   		<artifactId>guice-servlet</artifactId>
   		<version>2.0</version>
   		<type>jar</type>
   		<scope>compile</scope>
   	</dependency>
   	<dependency>
-  		<groupId>org.jasig.cas</groupId>
-  		<artifactId>cas-client</artifactId>
-  		<version>3.1.6</version>
-  		<type>pom</type>
-  		<scope>compile</scope>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.jasig.cas</groupId>
+  		<groupId>org.jasig.cas.client</groupId>
   		<artifactId>cas-client-core</artifactId>
-  		<version>3.1.6</version>
+  		<version>3.2.1</version>
   		<type>jar</type>
   		<scope>compile</scope>
   	</dependency>
