@@ -20,6 +20,9 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Binder;
 import com.google.inject.Singleton;
 import com.google.inject.servlet.ServletModule;
+import org.jasig.cas.client.authentication.Saml11AuthenticationFilter;
+import org.jasig.cas.client.validation.Cas10TicketValidationFilter;
+import org.jasig.cas.client.validation.Saml11TicketValidationFilter;
 
 /**
  * used to setup ja-sig CAS with Google guice. Typically, this would be called
@@ -32,9 +35,9 @@ import com.google.inject.servlet.ServletModule;
  * </pre>
  */
 public class CasServletModule extends ServletModule {
-	private static final Logger logger = LoggerFactory
-			.getLogger(CasServletModule.class);
 
+	private static final Logger logger = LoggerFactory
+					.getLogger(CasServletModule.class);
 	private String applicationConfigContext;
 	private Map<String, String> filterConfig = new HashMap<String, String>();
 
@@ -62,9 +65,9 @@ public class CasServletModule extends ServletModule {
 
 	/**
 	 * Class constructor.
-	 * 
-	 * @param applicationContext
-	 * @param binder	
+	 *
+	 * @param applicationContext allows you to configure cas applications referenced by different hosts in the same servlet container
+	 * @param binder
 	 */
 	public CasServletModule(String applicationContext, Binder binder) {
 		this();
@@ -73,71 +76,145 @@ public class CasServletModule extends ServletModule {
 			this.configure(binder);
 		}
 	}
+	private static final List<Class<? extends Filter>> CAS_1_FILTERS = new ArrayList<Class<? extends Filter>>();
 
-	private static final List<Class<? extends Filter>> CAS_FILTERS = new ArrayList<Class<? extends Filter>>();
 	static {
-        CAS_FILTERS.add(SingleSignOutFilter.class);
-		CAS_FILTERS.add(AuthenticationFilter.class);
-		CAS_FILTERS.add(Cas20ProxyReceivingTicketValidationFilter.class);
-		CAS_FILTERS.add(HttpServletRequestWrapperFilter.class);
+		CAS_1_FILTERS.add(SingleSignOutFilter.class);
+		CAS_1_FILTERS.add(AuthenticationFilter.class);
+		CAS_1_FILTERS.add(Cas10TicketValidationFilter.class);
+		CAS_1_FILTERS.add(HttpServletRequestWrapperFilter.class);
+	}
+	private static final List<Class<? extends Filter>> CAS_2_FILTERS = new ArrayList<Class<? extends Filter>>();
+
+	static {
+		CAS_2_FILTERS.add(SingleSignOutFilter.class);
+		CAS_2_FILTERS.add(AuthenticationFilter.class);
+		CAS_2_FILTERS.add(Cas20ProxyReceivingTicketValidationFilter.class);
+		CAS_2_FILTERS.add(HttpServletRequestWrapperFilter.class);
+	}
+	private static final List<Class<? extends Filter>> CAS_SAML_FILTERS = new ArrayList<Class<? extends Filter>>();
+
+	static {
+		CAS_SAML_FILTERS.add(SingleSignOutFilter.class);
+		CAS_SAML_FILTERS.add(Saml11AuthenticationFilter.class);
+		CAS_SAML_FILTERS.add(Saml11TicketValidationFilter.class);
+		CAS_SAML_FILTERS.add(HttpServletRequestWrapperFilter.class);
 	}
 
 	@Override
 	protected void configureServlets() {
 		logger.info("configuring servlets");
-		bind(HashServlet.class).in(Singleton.class);
-		try {
-			Context ctx = new InitialContext();
-			for (String name : new String[] { "serverName",
-					"casServerLoginUrl", "casServerUrlPrefix" }) {
-				String ctxName = this.applicationConfigContext != null ? String
-						.format("cas/%s/%s", this.applicationConfigContext,
-								name) : String.format("cas/%s", name);
-				try {
-					filterConfig.put(name, (String) ctx.lookup(ctxName));
-				} catch (NamingException e) {
-					if (this.applicationConfigContext == null) {
-						throw e;
-					} else {
-						String topCtxName = String.format("cas/%s", name);
-						logger.info(String.format(
-								"Failed to find %s. Trying %s", ctxName,
-								topCtxName));
-						filterConfig.put(name, (String) ctx.lookup(topCtxName));
-					}
-				}
-			}
-		} catch (NamingException e) {
-			throw new RuntimeException(e);
-		}
-		for (Class<? extends Filter> c : CAS_FILTERS) {
-			bind(c).in(Singleton.class);
-			filter("/hash").through(c, filterConfig);
-		}
-		serve("/hash").with(HashServlet.class);
+
+		/* This allows you to have applications hosted at different server urls hosted in the same servlet container */
+//		try {
+//			Context ctx = new InitialContext();
+//			for (String name : new String[]{"serverName",
+//																			"casServerLoginUrl", "casServerUrlPrefix"}) {
+//				String ctxName = this.applicationConfigContext != null ? String
+//								.format("cas/%s/%s", this.applicationConfigContext,
+//												name) : String.format("cas/%s", name);
+//				try {
+//					filterConfig.put(name, (String) ctx.lookup(ctxName));
+//				} catch (NamingException e) {
+//					if (this.applicationConfigContext == null) {
+//						throw e;
+//					} else {
+//						String topCtxName = String.format("cas/%s", name);
+//						logger.info(String.format(
+//										"Failed to find %s. Trying %s", ctxName,
+//										topCtxName));
+//						filterConfig.put(name, (String) ctx.lookup(topCtxName));
+//					}
+//				}
+//			}
+//		} catch (NamingException e) {
+//			throw new RuntimeException(e);
+//		}
+
+		bind(SingleSignOutFilter.class).in(Singleton.class);
+		bind(AuthenticationFilter.class).in(Singleton.class);
+		bind(Saml11AuthenticationFilter.class).in(Singleton.class);
+		bind(Cas20ProxyReceivingTicketValidationFilter.class).in(Singleton.class);
+		bind(Cas10TicketValidationFilter.class).in(Singleton.class);
+		bind(Saml11TicketValidationFilter.class).in(Singleton.class);
+		bind(HttpServletRequestWrapperFilter.class).in(Singleton.class);
+
+		bind(NoRedirectCasFilter.class).in(Singleton.class);
+		bind(RedirectUriServlet.class).in(Singleton.class);
+		bind(LogoutServlet.class).in(Singleton.class);
+
+		protectSaml("/auth/cas");
+		serve("/auth/cas").with(RedirectUriServlet.class);
+		serve("/auth/logout").with(LogoutServlet.class);
 	}
 
 	/**
 	 * protect the urls with CAS.
-	 * 
+	 *
 	 * @param urlPattern
 	 * @param morePatterns
 	 */
 	public void protect(String urlPattern, String... morePatterns) {
-		for (Class<? extends Filter> c : CAS_FILTERS) {
+		for (Class<? extends Filter> c : CAS_2_FILTERS) {
 			filter(urlPattern, morePatterns).through(c, filterConfig);
 		}
 	}
 
 	/**
 	 * protect the urls with regular expressions with CAS.
-	 * 
+	 *
 	 * @param regex
 	 * @param regexes
 	 */
 	public void protectRegex(String regex, String... regexes) {
-		for (Class<? extends Filter> c : CAS_FILTERS) {
+		for (Class<? extends Filter> c : CAS_2_FILTERS) {
 			filterRegex(regex, regexes).through(c, filterConfig);
 		}
+	}
+
+	/**
+	 * protect the urls with CAS.
+	 *
+	 * @param urlPattern
+	 * @param morePatterns
+	 */
+	public void protectSaml(String urlPattern, String... morePatterns) {
+		for (Class<? extends Filter> c : CAS_SAML_FILTERS) {
+			filter(urlPattern, morePatterns).through(c, filterConfig);
+		}
+	}
+
+	/**
+	 * protect the urls with regular expressions with CAS.
+	 *
+	 * @param regex
+	 * @param regexes
+	 */
+	public void protectSamlRegex(String regex, String... regexes) {
+		for (Class<? extends Filter> c : CAS_SAML_FILTERS) {
+			filterRegex(regex, regexes).through(c, filterConfig);
+		}
+	}
+
+	/**
+	 * protect the urls with CAS.
+	 *
+	 * @param urlPattern
+	 * @param morePatterns
+	 */
+	public void protectNoRedirect(String urlPattern, String... morePatterns) {
+		filter(urlPattern, morePatterns).through(HttpServletRequestWrapperFilter.class, filterConfig);
+		filter(urlPattern, morePatterns).through(NoRedirectCasFilter.class, filterConfig);
+	}
+
+	/**
+	 * protect the urls with regular expressions with CAS.
+	 *
+	 * @param regex
+	 * @param regexes
+	 */
+	public void protectNoRedirectRegex(String regex, String... regexes) {
+		filterRegex(regex, regexes).through(HttpServletRequestWrapperFilter.class, filterConfig);
+		filterRegex(regex, regexes).through(NoRedirectCasFilter.class, filterConfig);
 	}
 }
