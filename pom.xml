@@ -15,19 +15,25 @@
     </plugins>
   </build>
 	<scm>
-                <developerConnection>scm:git:file://${basedir}</developerConnection>
-                <url>scm:git:file://${basedir}</url>
-	</scm>
+      <connection>scm:git:file://${basedir}</connection>
+      <developerConnection>scm:git:file://${basedir}</developerConnection>
+      <tag>HEAD</tag>
+      <url>https://github.com/acu-dev/CAS-js</url>
+  </scm>
 	<distributionManagement>
-		<repository>
-			<id>acu</id>
-			<url>https://source.acu.edu/mvn/content/repositories/acu</url>
-		</repository>
-		<snapshotRepository>
-			<id>acu-snapshots</id>
-			<url>https://source.acu.edu/mvn/content/repositories/acu-snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
+      <repository>
+          <uniqueVersion>false</uniqueVersion>
+          <id>acu</id>
+          <name>ACU Releases</name>
+          <url>https://source.acu.edu/mvn/content/repositories/acu/</url>
+      </repository>
+      <snapshotRepository>
+          <uniqueVersion>true</uniqueVersion>
+          <id>acu-snapshots</id>
+          <name>ACU Snapshots</name>
+          <url>https://source.acu.edu/mvn/content/repositories/acu-snapshots/</url>
+      </snapshotRepository>
+  </distributionManagement>
   <dependencies>
   	<dependency>
   		<groupId>javax.servlet</groupId>
