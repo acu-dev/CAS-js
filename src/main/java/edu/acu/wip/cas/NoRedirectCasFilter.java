@@ -43,40 +43,43 @@ public class NoRedirectCasFilter extends AbstractCasFilter {
     private String page = null;
     private String script = null;
 
+    @Override
     protected void initInternal(final FilterConfig filterConfig) throws ServletException {
         if (!isIgnoreInitConfiguration()) {
             super.initInternal(filterConfig);
             this.page = getPropertyFromInitParams(filterConfig, "page", null);
-            log.trace("Loaded loginUrl parameter: " + this.page);
+            logger.trace("Loaded loginUrl parameter: " + this.page);
             this.script = getPropertyFromInitParams(filterConfig, "script", null);
-            log.trace("Loaded loginUrl parameter: " + this.script);
+            logger.trace("Loaded loginUrl parameter: " + this.script);
 
             setCasServerLoginUrl(getPropertyFromInitParams(filterConfig, "casServerLoginUrl", null));
-            log.trace("Loaded CasServerLoginUrl parameter: " + this.casServerLoginUrl);
+            logger.trace("Loaded CasServerLoginUrl parameter: " + this.casServerLoginUrl);
             setRenew(parseBoolean(getPropertyFromInitParams(filterConfig, "renew", "false")));
-            log.trace("Loaded renew parameter: " + this.renew);
+            logger.trace("Loaded renew parameter: " + this.renew);
             setGateway(parseBoolean(getPropertyFromInitParams(filterConfig, "gateway", "false")));
-            log.trace("Loaded gateway parameter: " + this.gateway);
+            logger.trace("Loaded gateway parameter: " + this.gateway);
 
             final String gatewayStorageClass = getPropertyFromInitParams(filterConfig, "gatewayStorageClass", null);
 
             if (gatewayStorageClass != null) {
                 try {
                     this.gatewayStorage = (GatewayResolver) Class.forName(gatewayStorageClass).newInstance();
-                } catch (final Exception e) {
-                    log.error(e, e);
+                } catch (final ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+                    logger.error("Exception creating new instance of gatewayStorageClass ({})", gatewayStorageClass, e);
                     throw new ServletException(e);
                 }
             }
         }
     }
 
+    @Override
     public void init() {
         super.init();
         assertNotNull(this.page, "page cannot be null.");
         assertNotNull(this.script, "script cannot be null.");
     }
 
+    @Override
     public final void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain) throws IOException, ServletException {
         final HttpServletRequest request = (HttpServletRequest) servletRequest;
         final HttpServletResponse response = (HttpServletResponse) servletResponse;
